@@ -1,0 +1,9 @@
+api_platform:
+    swagger:
+         api_keys:
+             JWT:
+                name: Authorization
+                type: header
+    title: 'API Plateform Test Env'
+    version: '1.0.0'
+    enable_profiler: true
