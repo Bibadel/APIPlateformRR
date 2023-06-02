@@ -10,7 +10,9 @@ use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Metadata\GetCollection;
 use Symfony\Component\Serializer\Annotation\Groups;
 use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Link;
+use ApiPlatform\Metadata\Patch;
 use App\State\PhoneProvider;
 
 #[ORM\Entity(repositoryClass: PhoneRepository::class)]
@@ -33,6 +35,21 @@ use App\State\PhoneProvider;
         new Delete(
             securityPostDenormalize: "object.user == user", 
             securityPostDenormalizeMessage: 'Not allowed to do that !'
+        ),
+        new Get(
+            securityPostDenormalize: "object.user == user", 
+            securityPostDenormalizeMessage: 'Not allowed to do that !'
+        ),
+        new Patch(
+            securityPostDenormalize: "object.user == user", 
+            securityPostDenormalizeMessage: 'Not allowed to do that !',
+            uriTemplate: "/phones/{uuid}",
+            uriVariables: [
+                "uuid" => new Link(
+                    toProperty: 'user',
+                    fromClass: User::class
+                )
+            ],
         )
     ],
         normalizationContext:['groups' => ['read:Phone']],
@@ -57,7 +74,7 @@ class Phone
     #[ORM\ManyToOne(inversedBy: 'phones')]
     #[ORM\JoinColumn(referencedColumnName:'uuid', name:'user_uuid', nullable: false)]
     #[Groups(['read:Phone' , 'write:Phone'])]
-    private ?User $user = null;
+    public ?User $user = null;
 
     public function getId(): ?int
     {

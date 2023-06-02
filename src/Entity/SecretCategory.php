@@ -12,6 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Link;
 use App\State\SecretCategoryProvider;
 
@@ -25,17 +26,20 @@ use App\State\SecretCategoryProvider;
                 toProperty: 'user',
                 fromClass: User::class
             )
-        ],
-        provider: SecretCategoryProvider::class,
-        paginationEnabled:false),
-        new Post(
-            securityPostDenormalize: "object.user == user", 
-            securityPostDenormalizeMessage: 'Not allowed to do that !'
-        ),
-        new Delete(
-            securityPostDenormalize: "object.user == user", 
-            securityPostDenormalizeMessage: 'Not allowed to do that !'
-        )
+            ],
+            provider: SecretCategoryProvider::class,
+            paginationEnabled:false),
+            new Post(
+                securityPostDenormalize: "object.user == user", 
+                securityPostDenormalizeMessage: 'Not allowed to do that !'
+            ),
+            new Delete(
+                securityPostDenormalize: "object.user == user", 
+                securityPostDenormalizeMessage: 'Not allowed to do that !'
+            ),
+            new Get(
+                securityPostDenormalize: "object.user == user", 
+                securityPostDenormalizeMessage: 'Not allowed to do that !')
         ],
         normalizationContext:['groups' => ['read:Category']],
         denormalizationContext:['groups' => ['write:Category']]

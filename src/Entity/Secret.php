@@ -11,8 +11,10 @@ use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Metadata\GetCollection;
 use Symfony\Component\Serializer\Annotation\Groups;
 use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Get;
 use App\State\SecretProvider;
 use ApiPlatform\Metadata\Link;
+use ApiPlatform\Metadata\Patch;
 use Symfony\Component\Serializer\Annotation\MaxDepth;
 
 #[ORM\Entity(repositoryClass: SecretRepository::class)]
@@ -34,7 +36,16 @@ use Symfony\Component\Serializer\Annotation\MaxDepth;
         ),
         new Delete(
             securityPostDenormalize: "object.user == user", 
-            securityPostDenormalizeMessage: 'Not allowed to do that !')
+            securityPostDenormalizeMessage: 'Not allowed to do that !'
+        ),
+        new Get(
+            securityPostDenormalize: "object.user == user", 
+            securityPostDenormalizeMessage: 'Not allowed to do that !'
+        ),
+        new Patch(
+            securityPostDenormalize: "object.user == user", 
+            securityPostDenormalizeMessage: 'Not allowed to do that !'
+        )
     ],
         normalizationContext:['groups' => ['read:Secret']],
         denormalizationContext:['groups' => ['write:Secret']]
@@ -42,7 +53,7 @@ use Symfony\Component\Serializer\Annotation\MaxDepth;
 class Secret
 {
     #[ORM\Id, ORM\GeneratedValue, ORM\Column]
-    #[Groups(['read:Secret' , 'write:Secret'])]
+    #[Groups(['read:Secret'])]
     private ?int $id = null;
 
     #[ORM\Column]

@@ -22,7 +22,7 @@ class PhoneProvider implements ProviderInterface
     {
         $user = $this->security->getUser();
         if($user->uuid != $uriVariables['uuid']) {
-            throw new Exception('Not Allowed to do That !', 401);
+            throw new Exception('Not allowed to do that !', 401);
         }
         if ($operation instanceof CollectionOperationInterface) {
             $phones = $this->phoneRepository->findByUuid($uriVariables['uuid']);

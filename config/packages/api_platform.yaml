@@ -4,6 +4,6 @@ api_platform:
              JWT:
                 name: Authorization
                 type: header
-    title: 'API Plateform Test Env'
+    title: 'SecretLife API'
     version: '1.0.0'
     enable_profiler: true

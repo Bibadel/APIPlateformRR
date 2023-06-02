@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use App\Repository\UserRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -13,28 +14,55 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use App\State\UserPasswordHasher;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\GetCollection;
+use App\State\UserTokenProvider;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ApiResource(
     operations: [
-        new Post(processor: UserPasswordHasher::class, denormalizationContext: ['groups' => ['write:User']])
-        ],
-        normalizationContext:['groups' => ['read:User']]
+        new Post(processor: UserPasswordHasher::class, denormalizationContext: ['groups' => ['write:Post:User']]),
+        new Get(
+            uriTemplate: "/{uuid}/user",
+            securityPostDenormalize: "object.uuid == uuid", 
+            securityPostDenormalizeMessage: 'Not allowed to do that !',
+            normalizationContext:['groups' => ['read:User']]
+        ),
+        new Get(
+            uriTemplate: "/get_unlock_token/{uuid}",
+            provider: UserTokenProvider::class,
+            normalizationContext:['groups' => ['read:User']]
+        ),
+        new Patch(
+            uriTemplate: "/{uuid}/user",
+            securityPostDenormalize: "object.uuid == uuid", 
+            securityPostDenormalizeMessage: 'Not allowed to do that !',
+            denormalizationContext:['groups' => ['write:Patch:User']]
+        ),
+        new Delete(
+            uriTemplate: "/{uuid}/user",
+            securityPostDenormalize: "object.uuid == uuid", 
+            securityPostDenormalizeMessage: 'Not allowed to do that !'
+        )
+        ]
+        
 )]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
 
     #[ORM\Id]
     #[ORM\Column(length: 180, unique: true)]
-    #[Groups(['read:User', 'write:User', 'read:Secret', 'read:Category', 'read:Phone', 'read:Password'])]
+    #[Groups(['read:User', 'write:Post:User', 'read:Secret', 'read:Category', 'read:Phone', 'read:Password'])]
     #[ApiProperty(identifier:true)]
     public ?string $uuid = null;
 
     #[ORM\Column]
     private array $roles = [];
+
+    #[ORM\Column(type: Types::TEXT, nullable:true)]
+    #[Groups(['read:User', 'write:Patch:User'])]
+    public ?string $unlockDate = null;
 
     /**
      * @var string The hashed password
@@ -42,19 +70,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
    
-    #[Groups(['write:User'])]
+    #[Groups(['write:Post:User'])]
     private ?string $plainPassword = null;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Phone::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Phone::class, orphanRemoval: true, cascade:["remove"])]
     private Collection $phones;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Password::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Password::class, orphanRemoval: true, cascade:["remove"])]
     private Collection $passwords;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Secret::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Secret::class, orphanRemoval: true, cascade:["remove"])]
     private Collection $secrets;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: SecretCategory::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: SecretCategory::class, orphanRemoval: true, cascade:["remove"])]
     private Collection $secretCategories;
 
     public function __construct()
@@ -102,6 +130,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setRoles(array $roles): self
     {
         $this->roles = $roles;
+
+        return $this;
+    }
+
+    public function getUnlockTime(): ?string
+    {
+        return $this->unlockDate;
+    }
+
+    public function setUnlockTime(string $unlockDate): self
+    {
+        $this->unlockDate = $unlockDate;
 
         return $this;
     }
